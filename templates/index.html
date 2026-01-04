@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎬 YouTube Downloader</h1>
+            <p class="subtitle">Téléchargez vos vidéos YouTube préférées facilement</p>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <input type="text" id="urlInput" placeholder="Collez l'URL de la vidéo YouTube ici..." />
+                <button id="getInfoBtn" class="btn btn-primary">Obtenir les infos</button>
+            </div>
+
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Chargement...</p>
+            </div>
+
+            <div id="errorMessage" class="error-message hidden"></div>
+
+            <div id="videoInfo" class="video-info hidden">
+                <div class="video-preview">
+                    <img id="thumbnail" src="" alt="Thumbnail" />
+                    <div class="video-details">
+                        <h2 id="videoTitle"></h2>
+                        <p class="video-meta">
+                            <span id="uploader"></span> • 
+                            <span id="duration"></span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="download-options">
+                    <h3>Options de téléchargement</h3>
+                    
+                    <div class="option-group">
+                        <label>
+                            <input type="radio" name="downloadType" value="video" checked />
+                            <span>Vidéo (meilleure qualité)</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="downloadType" value="audio" />
+                            <span>Audio seulement (MP3)</span>
+                        </label>
+                    </div>
+
+                    <div id="formatSelection" class="format-selection">
+                        <label for="formatSelect">Choisir le format :</label>
+                        <select id="formatSelect" class="format-select">
+                            <option value="best">Meilleure qualité</option>
+                        </select>
+                    </div>
+
+                    <button id="downloadBtn" class="btn btn-success">
+                        📥 Télécharger
+                    </button>
+
+                    <div id="progressContainer" class="progress-container hidden">
+                        <h3>Téléchargement en cours...</h3>
+                        <div class="progress-bar-container">
+                            <div id="progressBar" class="progress-bar">
+                                <span id="progressText">0%</span>
+                            </div>
+                        </div>
+                        <div class="progress-info">
+                            <span id="progressStatus">Initialisation...</span>
+                            <span id="progressSpeed"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="successMessage" class="success-message hidden">
+                <p>✅ Téléchargement réussi!</p>
+                <a id="downloadLink" class="btn btn-download" href="#" download>
+                    💾 Télécharger le fichier
+                </a>
+            </div>
+        </div>
+
+        <footer>
+            <p>⚠️ Respectez les droits d'auteur et les conditions d'utilisation de YouTube</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
