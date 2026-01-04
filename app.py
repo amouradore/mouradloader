@@ -135,7 +135,15 @@ def get_info():
         })
             
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        error_msg = str(e)
+        # Messages d'erreur plus clairs pour l'utilisateur
+        if 'Sign in to confirm' in error_msg or 'bot' in error_msg.lower():
+            error_msg = "YouTube a bloqué la requête. L'application essaie plusieurs proxies mais ils peuvent être lents ou indisponibles. Veuillez réessayer dans quelques instants."
+        elif 'timed out' in error_msg.lower():
+            error_msg = "La connexion a expiré. Le proxy utilisé est trop lent. Veuillez réessayer."
+        
+        print(f"❌ Erreur get_info: {error_msg}")
+        return jsonify({'error': error_msg}), 500
 
 def download_video_thread(download_id, url, format_id, download_type, download_folder):
     """Fonction pour télécharger la vidéo dans un thread séparé"""
@@ -227,14 +235,21 @@ def download_video_thread(download_id, url, format_id, download_type, download_f
             }
             
     except Exception as e:
+        error_msg = str(e)
+        # Messages d'erreur plus clairs
+        if 'Sign in to confirm' in error_msg or 'bot' in error_msg.lower():
+            error_msg = "YouTube a bloqué le téléchargement. Veuillez réessayer."
+        elif 'timed out' in error_msg.lower():
+            error_msg = "Timeout : le proxy est trop lent. Réessayez."
+        
         download_progress[download_id] = {
             'status': 'error',
             'progress': 0,
-            'error': str(e)
+            'error': error_msg
         }
         download_results[download_id] = {
             'success': False,
-            'error': str(e)
+            'error': error_msg
         }
 
 @app.route('/download', methods=['POST'])
