@@ -18,29 +18,7 @@ Path(app.config['DOWNLOAD_FOLDER']).mkdir(exist_ok=True)
 download_progress = {}
 download_results = {}
 
-# Liste de proxies gratuits (HTTP/HTTPS/SOCKS5)
-# Ces proxies sont publics et peuvent ne pas toujours fonctionner
-FREE_PROXIES = [
-    None,  # Essayer sans proxy d'abord
-    'socks5://51.158.68.68:8811',
-    'socks5://51.159.154.37:8811',
-    'socks5://51.158.105.107:8811',
-    'http://51.210.216.186:8080',
-    'http://198.27.74.6:9300',
-    'http://103.152.112.162:80',
-]
-
-def get_ydl_opts_with_proxy(base_opts, use_proxy=True):
-    """Configure yt-dlp avec ou sans proxy"""
-    opts = base_opts.copy()
-    
-    if use_proxy and len(FREE_PROXIES) > 1:
-        # Choisir un proxy aléatoire (skip None)
-        proxy = random.choice([p for p in FREE_PROXIES if p is not None])
-        opts['proxy'] = proxy
-        print(f"🔄 Utilisation du proxy: {proxy}")
-    
-    return opts
+# Stratégie: Utiliser les clients mobiles (Android/iOS) qui sont moins bloqués par YouTube
 
 def sanitize_filename(filename):
     """Nettoie le nom de fichier pour éviter les problèmes"""
