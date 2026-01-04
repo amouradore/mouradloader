@@ -83,6 +83,8 @@ def get_info():
         
         # Essayer avec différents proxies en cas d'échec
         last_error = None
+        info = None
+        
         for attempt, proxy in enumerate(FREE_PROXIES):
             try:
                 current_opts = ydl_opts.copy()
@@ -104,29 +106,33 @@ def get_info():
                     # Dernier essai, lever l'erreur
                     raise last_error
                 continue
-            
-            # Extraire les formats disponibles
-            formats = []
-            if 'formats' in info:
-                for f in info['formats']:
-                    if f.get('vcodec') != 'none' or f.get('acodec') != 'none':
-                        format_info = {
-                            'format_id': f.get('format_id'),
-                            'ext': f.get('ext'),
-                            'quality': f.get('format_note', 'N/A'),
-                            'filesize': f.get('filesize', 0),
-                            'vcodec': f.get('vcodec', 'none'),
-                            'acodec': f.get('acodec', 'none'),
-                        }
-                        formats.append(format_info)
-            
-            return jsonify({
-                'title': info.get('title'),
-                'thumbnail': info.get('thumbnail'),
-                'duration': info.get('duration'),
-                'uploader': info.get('uploader'),
-                'formats': formats,
-            })
+        
+        # Si on arrive ici sans info, c'est qu'il y a eu un problème
+        if info is None:
+            raise Exception("Impossible de récupérer les informations de la vidéo avec tous les proxies")
+        
+        # Extraire les formats disponibles
+        formats = []
+        if 'formats' in info:
+            for f in info['formats']:
+                if f.get('vcodec') != 'none' or f.get('acodec') != 'none':
+                    format_info = {
+                        'format_id': f.get('format_id'),
+                        'ext': f.get('ext'),
+                        'quality': f.get('format_note', 'N/A'),
+                        'filesize': f.get('filesize', 0),
+                        'vcodec': f.get('vcodec', 'none'),
+                        'acodec': f.get('acodec', 'none'),
+                    }
+                    formats.append(format_info)
+        
+        return jsonify({
+            'title': info.get('title'),
+            'thumbnail': info.get('thumbnail'),
+            'duration': info.get('duration'),
+            'uploader': info.get('uploader'),
+            'formats': formats,
+        })
             
     except Exception as e:
         return jsonify({'error': str(e)}), 500
