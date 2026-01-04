@@ -1,3 +1,4 @@
 ﻿Flask==3.0.0
 yt-dlp==2024.12.23
 gunicorn==21.2.0
+PySocks==1.7.1

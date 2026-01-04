@@ -6,6 +6,7 @@ from pathlib import Path
 import json
 import uuid
 import threading
+import random
 
 app = Flask(__name__)
 app.config['DOWNLOAD_FOLDER'] = 'downloads'
@@ -16,6 +17,30 @@ Path(app.config['DOWNLOAD_FOLDER']).mkdir(exist_ok=True)
 # Dictionnaire pour stocker la progression des téléchargements
 download_progress = {}
 download_results = {}
+
+# Liste de proxies gratuits (HTTP/HTTPS/SOCKS5)
+# Ces proxies sont publics et peuvent ne pas toujours fonctionner
+FREE_PROXIES = [
+    None,  # Essayer sans proxy d'abord
+    'socks5://51.158.68.68:8811',
+    'socks5://51.159.154.37:8811',
+    'socks5://51.158.105.107:8811',
+    'http://51.210.216.186:8080',
+    'http://198.27.74.6:9300',
+    'http://103.152.112.162:80',
+]
+
+def get_ydl_opts_with_proxy(base_opts, use_proxy=True):
+    """Configure yt-dlp avec ou sans proxy"""
+    opts = base_opts.copy()
+    
+    if use_proxy and len(FREE_PROXIES) > 1:
+        # Choisir un proxy aléatoire (skip None)
+        proxy = random.choice([p for p in FREE_PROXIES if p is not None])
+        opts['proxy'] = proxy
+        print(f"🔄 Utilisation du proxy: {proxy}")
+    
+    return opts
 
 def sanitize_filename(filename):
     """Nettoie le nom de fichier pour éviter les problèmes"""
@@ -41,6 +66,7 @@ def get_info():
             'no_warnings': True,
             'extract_flat': False,
             'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+            'socket_timeout': 30,
         }
         
         # Ajouter les cookies si disponibles
@@ -55,8 +81,29 @@ def get_info():
             'Accept-Language': 'en-us,en;q=0.5',
         }
         
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
+        # Essayer avec différents proxies en cas d'échec
+        last_error = None
+        for attempt, proxy in enumerate(FREE_PROXIES):
+            try:
+                current_opts = ydl_opts.copy()
+                if proxy:
+                    current_opts['proxy'] = proxy
+                    print(f"🔄 Tentative {attempt + 1} avec proxy: {proxy}")
+                else:
+                    print(f"🔄 Tentative {attempt + 1} sans proxy")
+                
+                with yt_dlp.YoutubeDL(current_opts) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    print(f"✅ Succès avec proxy: {proxy if proxy else 'aucun'}")
+                    break  # Succès, sortir de la boucle
+                    
+            except Exception as e:
+                last_error = e
+                print(f"❌ Échec avec proxy {proxy}: {str(e)[:100]}")
+                if attempt == len(FREE_PROXIES) - 1:
+                    # Dernier essai, lever l'erreur
+                    raise last_error
+                continue
             
             # Extraire les formats disponibles
             formats = []
@@ -119,6 +166,7 @@ def download_video_thread(download_id, url, format_id, download_type, download_f
             'no_warnings': False,
             'progress_hooks': [progress_hook],
             'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+            'socket_timeout': 30,
         }
         
         # Ajouter les cookies si disponibles
@@ -132,6 +180,12 @@ def download_video_thread(download_id, url, format_id, download_type, download_f
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-us,en;q=0.5',
         }
+        
+        # Essayer avec un proxy aléatoire
+        proxy = random.choice(FREE_PROXIES)
+        if proxy:
+            ydl_opts['proxy'] = proxy
+            print(f"📥 Téléchargement avec proxy: {proxy}")
         
         if download_type == 'audio':
             ydl_opts.update({
