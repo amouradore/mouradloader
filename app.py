@@ -65,8 +65,14 @@ def get_info():
             'quiet': True,
             'no_warnings': True,
             'extract_flat': False,
-            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
-            'socket_timeout': 30,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'ios', 'web'],
+                    'player_skip': ['webpage', 'configs'],
+                }
+            },
+            'socket_timeout': 20,
+            'no_check_certificate': True,
         }
         
         # Ajouter les cookies si disponibles
@@ -81,35 +87,40 @@ def get_info():
             'Accept-Language': 'en-us,en;q=0.5',
         }
         
-        # Essayer avec différents proxies en cas d'échec
+        # Essayer avec différents clients (Android, iOS, Web)
+        clients_to_try = ['android', 'ios', 'web']
         last_error = None
         info = None
         
-        for attempt, proxy in enumerate(FREE_PROXIES):
+        for client in clients_to_try:
             try:
                 current_opts = ydl_opts.copy()
-                if proxy:
-                    current_opts['proxy'] = proxy
-                    print(f"🔄 Tentative {attempt + 1} avec proxy: {proxy}")
-                else:
-                    print(f"🔄 Tentative {attempt + 1} sans proxy")
+                current_opts['extractor_args'] = {
+                    'youtube': {
+                        'player_client': [client],
+                        'player_skip': ['webpage', 'configs'],
+                    }
+                }
+                print(f"🔄 Tentative avec client: {client}")
                 
                 with yt_dlp.YoutubeDL(current_opts) as ydl:
                     info = ydl.extract_info(url, download=False)
-                    print(f"✅ Succès avec proxy: {proxy if proxy else 'aucun'}")
+                    print(f"✅ Succès avec client: {client}")
                     break  # Succès, sortir de la boucle
                     
             except Exception as e:
                 last_error = e
-                print(f"❌ Échec avec proxy {proxy}: {str(e)[:100]}")
-                if attempt == len(FREE_PROXIES) - 1:
-                    # Dernier essai, lever l'erreur
+                error_str = str(e)[:150]
+                print(f"❌ Échec avec client {client}: {error_str}")
+                
+                # Si c'est le dernier client, lever l'erreur
+                if client == clients_to_try[-1]:
                     raise last_error
                 continue
         
         # Si on arrive ici sans info, c'est qu'il y a eu un problème
         if info is None:
-            raise Exception("Impossible de récupérer les informations de la vidéo avec tous les proxies")
+            raise Exception("Impossible de récupérer les informations avec tous les clients")
         
         # Extraire les formats disponibles
         formats = []
@@ -179,8 +190,14 @@ def download_video_thread(download_id, url, format_id, download_type, download_f
             'quiet': False,
             'no_warnings': False,
             'progress_hooks': [progress_hook],
-            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
-            'socket_timeout': 30,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'ios', 'web'],
+                    'player_skip': ['webpage', 'configs'],
+                }
+            },
+            'socket_timeout': 20,
+            'no_check_certificate': True,
         }
         
         # Ajouter les cookies si disponibles
@@ -195,11 +212,7 @@ def download_video_thread(download_id, url, format_id, download_type, download_f
             'Accept-Language': 'en-us,en;q=0.5',
         }
         
-        # Essayer avec un proxy aléatoire
-        proxy = random.choice(FREE_PROXIES)
-        if proxy:
-            ydl_opts['proxy'] = proxy
-            print(f"📥 Téléchargement avec proxy: {proxy}")
+        print(f"📥 Téléchargement avec clients mobiles (Android/iOS/Web)")
         
         if download_type == 'audio':
             ydl_opts.update({
