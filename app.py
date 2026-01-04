@@ -201,10 +201,13 @@ def download_video_thread(download_id, url, format_id, download_type, download_f
                 }],
             })
         else:
+            # Sélection intelligente du format avec fallback
             if format_id and format_id != 'best':
-                ydl_opts['format'] = format_id
+                # Essayer le format demandé avec fallback automatique
+                ydl_opts['format'] = f'{format_id}/bestvideo+bestaudio/best'
             else:
-                ydl_opts['format'] = 'best'
+                # Meilleure qualité disponible (vidéo + audio fusionnés)
+                ydl_opts['format'] = 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best'
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
