@@ -40,6 +40,13 @@ def get_info():
             'quiet': True,
             'no_warnings': True,
             'extract_flat': False,
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+            'http_headers': {
+                'User-Agent': 'com.google.android.youtube/17.36.4 (Linux; U; Android 12; GB) gzip',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-us,en;q=0.5',
+                'Sec-Fetch-Mode': 'navigate',
+            }
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -105,6 +112,13 @@ def download_video_thread(download_id, url, format_id, download_type, download_f
             'quiet': False,
             'no_warnings': False,
             'progress_hooks': [progress_hook],
+            'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+            'http_headers': {
+                'User-Agent': 'com.google.android.youtube/17.36.4 (Linux; U; Android 12; GB) gzip',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-us,en;q=0.5',
+                'Sec-Fetch-Mode': 'navigate',
+            }
         }
         
         if download_type == 'audio':
