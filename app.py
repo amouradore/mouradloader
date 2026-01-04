@@ -6,7 +6,6 @@ from pathlib import Path
 import json
 import uuid
 import threading
-import random
 
 app = Flask(__name__)
 app.config['DOWNLOAD_FOLDER'] = 'downloads'
